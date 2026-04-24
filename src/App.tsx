@@ -22,41 +22,37 @@ enum SortType {
   byLength = 'length',
 }
 
-enum FilterType {
-  reverse = 'reverse',
-}
-
 export const App: React.FC = () => {
-  const [filterBy, setFilterBy] = useState<FilterType[]>([]);
   const [sortBy, setSortBy] = useState<SortType | ''>('');
+  const [isReversed, setIsReversed] = useState<boolean>(false);
 
   const preparedGoods = [...goodsFromServer];
 
-  if (sortBy === SortType.byAlphabet) {
-    preparedGoods.sort((a, b) => {
-      return a.localeCompare(b);
-    });
+  switch (sortBy) {
+    case SortType.byAlphabet:
+      preparedGoods.sort((a, b) => {
+        return a.localeCompare(b);
+      });
+      break;
+
+    case SortType.byLength:
+      preparedGoods.sort((a, b) => {
+        return a.length - b.length;
+      });
   }
 
-  if (sortBy === SortType.byLength) {
-    preparedGoods.sort((a, b) => {
-      return a.length - b.length;
-    });
-  }
-
-  if (filterBy.includes(FilterType.reverse)) {
+  if (isReversed) {
     preparedGoods.reverse();
   }
 
-  function setFilter(filter: FilterType) {
-    setFilterBy(prevFilters => {
-      if (filterBy.includes(filter)) {
-        return prevFilters.filter(i => i !== filter);
-      } else {
-        return [...prevFilters, filter];
-      }
-    });
-  }
+  const handleToggleIsReversed = () => {
+    setIsReversed(prevState => !prevState);
+  };
+
+  const handleReset = () => {
+    setIsReversed(false);
+    setSortBy('');
+  };
 
   return (
     <div className="section content">
@@ -84,21 +80,18 @@ export const App: React.FC = () => {
         <button
           type="button"
           className={cn('button', 'is-warning', {
-            'is-light': !filterBy.includes(FilterType.reverse),
+            'is-light': !isReversed,
           })}
-          onClick={() => setFilter(FilterType.reverse)}
+          onClick={handleToggleIsReversed}
         >
           Reverse
         </button>
 
-        {(filterBy.length !== 0 || sortBy !== '') && (
+        {(isReversed || sortBy !== '') && (
           <button
             type="button"
             className="button is-danger is-light"
-            onClick={() => {
-              setFilterBy([]);
-              setSortBy('');
-            }}
+            onClick={handleReset}
           >
             Reset
           </button>
